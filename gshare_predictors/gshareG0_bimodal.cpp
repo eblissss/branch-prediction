@@ -59,8 +59,7 @@ int main(int args, char* argv[]) {
     cout.precision(4);
     cout << setw(30) << left << "number of predictions: " << setw(8) << predictions << endl;
     cout << setw(30) << "number of mispredictions: " << setw(8) << mispredictions << endl;
-    cout << setw(30) << "misprediction rate:" << setw(5) << mis_rate << "%" << endl;
-    
+    cout << setw(30) << "misprediction rate:" << setw(4) << fixed << setprecision(2) << mis_rate << "%" << endl;
     for (int i = 0; i < (1 << m); i++) {
         cout << i << "  " << table[i] << endl;
     }
