@@ -30,6 +30,7 @@
 *.exe
 *.out
 *.app
+sim
 
 gcc_trace.txt
 jpeg_trace.txt
