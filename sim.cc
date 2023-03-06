@@ -38,11 +38,11 @@ int main(int argc, char* argv[]) {
         results = gshare(stoi(argv[2]), stoi(argv[3]), argv[4]);
     }
     else if (strcmp(argv[1], "hybrid") == 0) {
-        if (argc < 6) {
-            cout << "Usage: sim hybrid <M1> <N> <M2> <tracefile>" << endl;
+        if (argc < 7) {
+            cout << "Usage: sim hybrid <K> <M1> <N> <M2> <tracefile>" << endl;
             return 0;
         }
-        // Call hybrid
+        results = hybrid(stoi(argv[2]), stoi(argv[3]), stoi(argv[4]), stoi(argv[5]), argv[6]);
     } else {
         cout << "Not a valid sim type! Choose from smith, bimodal, gshare, or hybrid" << endl;
         return 0;
