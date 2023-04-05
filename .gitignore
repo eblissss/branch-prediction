@@ -35,3 +35,5 @@ sim
 gcc_trace.txt
 jpeg_trace.txt
 perl_trace.txt
+*.pkl
+*.model
