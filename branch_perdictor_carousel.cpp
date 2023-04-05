@@ -1,14 +1,12 @@
 #include <bits/stdc++.h>
 #include <fstream>
-#include <iostream>
+// include <iostream>
 
 using namespace std;
 
-//THIS FILE IS INCOMPLETE
+//THIS FILE IS UNTESTED
 //Things I have learned while writing this: I do not know c++. We need an algorithim that is Unsupervised!!!
-//I will try to finish the implementation on 3/23/2023 or before the end of 3/24/2023
-//Explination will be in the document. Will comment later.
-//This document is an approach to Items 2 and 3
+//Squeezing has been implemented, however this file remains untested. 
 
 // complete branch perdictors
 int* bimodal(int m, string tracefile) {
@@ -369,10 +367,6 @@ int* smith_segmented(int num_bits, string tracefile, int seg_len, int seg_offset
 
 void autosqueeze(int segment_length, int iterations, int amount_traces, string path_to_trace){
 
-// to implement squeezing
-//for(int iteration = 0; iteration < iterations; iteration++)
-//SQUEEZING HAS NOT YET BEEN IMPLEMENTED YET!!!!!
-
 //basic branch perdictor fitting below
 int perdictor_amount = 3; //amount of perdictors we're using
 int segement_amount = amount_traces / segment_length; //amount of segments trace is divided into
@@ -393,7 +387,8 @@ cout << segement_amount;
 // calculate bias for each section
 
 int offset = 0; //inital offset for determining where in trace this segment begins
-
+ 
+ /*
 for(int segment = 0; segment <= segement_amount; segment++){
     
     int* bimodal_inital_bias = bimodal_segmented(bimodal_m, path_to_trace, segment_length, offset);
@@ -419,9 +414,91 @@ for(int segment = 0; segment <= segement_amount; segment++){
     offset = segment + offset;
     
 }
+*/
 
 
+// this threshold value is the value by determining if the segment or 'window' will be expanded
+float threshold = 0.80;
+// this is the amount to expand current segment, deincrement by
+int segment_step = segment_length/10;
+// this is the segment/window to start on
+int segment = 0;
+// this is the value by which to squeeze the next segment (i.e. if we're expanding segment "3" for example by 140, we need to subtract 
+// that amount from the next segment, in this case segment 4)
+int segment_squeeze = 0;
+// this value stores the original segment length for use in calulating the segment length of new segments
+int original_segment_length = segment_length;
+// this value tells you if you've actually jumped to a new segment or not (flag variable)
+bool new_segment = false;
 
+// this method implements squeezing rudimentairily
+while(segment <= segement_amount){
+
+    // if we're on a new segment, we don't wan't to use the old value of length that may have been modified for one of the older perdictors
+    if (new_segment){
+        //also if we're on a new segment, we want to make sure it's appropiatly squeezed, that is we don't want to overlap the first part of this
+        //trace if it's already been analyzed by the last perdictor. (if the previous segment expanded onto this one)
+        segment_length = original_segment_length - segment_squeeze;
+        //If this segment has been squeezed, we want to make sure we're starting in the right area in the trace. 
+        offset = offset + segment_squeeze;
+    }
+
+    // implementation of the for loop with autosqueezing - squeeze forward
+    
+    int* bimodal_inital_bias = bimodal_segmented(bimodal_m, path_to_trace, segment_length, offset);
+    int* gshare_inital_bias = gshare_segmented(gshare_m, gshare_n, path_to_trace, segment_length, offset);
+    int* smith_inital_bias = smith_segmented(smith_bits, path_to_trace, segment_length, offset);
+
+    perdictor_bias[segment][0] = 1 - (static_cast<float>(bimodal_inital_bias[1]) / static_cast<float>(bimodal_inital_bias[0]));
+    perdictor_bias[segment][1] = 1 - (static_cast<float>(gshare_inital_bias[1]) / static_cast<float>(gshare_inital_bias[0]));
+    perdictor_bias[segment][2] = 1 - (static_cast<float>(smith_inital_bias[1]) / static_cast<float>(smith_inital_bias[0]));
+
+    // this is where 'squeezing' is implemented - 
+
+    // let's take the best value of these perdictors - that is the one with the highest accuracy
+    float best_perdictor = std::max({perdictor_bias[segment][0], perdictor_bias[segment][1], perdictor_bias[segment][2] });
+
+    // if it's soo good that we've expanded it 10 times, (as in it basically consumed the next segment, we want to make sure we don't
+    // try to analyze that one again)
+    if (segment_length = 2 * original_segment_length){
+        segment = segment + 2;
+
+        // don't forget to update the offset
+        offset = segment * offset;
+        // at this point we can do no more expanding or squeezing, so just move to the next segment
+        new_segment = true;
+    }
+    // if one of the perdictors is above the threshold value, expand by [segment step] and recalculate the percentage
+    else if (best_perdictor > threshold){
+        segment_squeeze = segment_squeeze + segment_step;
+        segment_length = segment_length + segment_squeeze;
+
+        new_segment = false;
+    }
+    // if the best perdictor is not above the threshold value, just move on. 
+    else{
+        segment++;
+
+        offset = segment * offset;
+
+        new_segment = true;
+    }
+
+    // this is to visualize the parameters in the actual result array
+
+    cout << "biases for Segment " << segment;
+    cout << " bimodal, gshare, smith. ";
+    cout << "\n\n";
+    cout << perdictor_bias[segment][0];
+    cout << "\n";
+    cout << perdictor_bias[segment][1];
+    cout << "\n";
+    cout << perdictor_bias[segment][2];
+    cout << "\n";
+
+    
+    
+}
 
 }
 
