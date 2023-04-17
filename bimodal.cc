@@ -4,9 +4,7 @@
 using namespace std;
 
 // Index size (M)
-int* bimodal(int m, char *tracefile) {
-
-    vector<int> table(1 << m, 4);
+int* bimodal(int m, char *tracefile, vector<int> table) {
 
     bool actual_taken;
     bool pred_taken;

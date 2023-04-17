@@ -3,13 +3,10 @@
 
 using namespace std;
 
-int* hybrid(int k, int m_1, int n, int m_2, char *tracefile) {
+int* hybrid(int k, int m_1, int n, int m_2, char *tracefile,
+            vector<int> table_g, vector<int> table_b, vector<uint8_t> chooser_table) {
     
     int bhr_largest_bit = 1 << (n - 1);
-
-    vector<int> table_g(1 << m_1, 4);
-    vector<int> table_b(1 << m_2, 4);
-    vector<uint8_t> chooser_table(1 << k, 1);
 
     bool actual_taken;
     bool pred_taken_g, pred_taken_b, pred_taken_h;
