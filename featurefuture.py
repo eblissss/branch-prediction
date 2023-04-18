@@ -1,16 +1,20 @@
+import matplotlib
+import random
+matplotlib.use('Agg')
 import pandas as pd
 import xgboost
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from predictors import *
 from os.path import exists
+from xgboost import plot_importance, plot_tree
 
 # CONFIG
-m = 5 # m sets the size of the predictor tables
-n = 4 # n is the bit amounts for the predictors (n <= m)
+m = 8 # m sets the size of the predictor tables
+n = 3 # n is the bit amounts for the predictors (n <= m)
 W = 50 # length of the features window
-S = 5 # query the model every S segments
-tracefile = "traces/gcc_trace.txt"
+S = 10 # query the model every S segments
+tracefile = "traces/jpeg_trace.txt"
 pickle_data = "./data_pickle.pkl"
 data_amount = 700_000
 
@@ -77,14 +81,15 @@ if not exists(pickle_data):
     df['smith_window'] = 1-(df['smith_misspredicts'].rolling(window = W).sum()/W)
 
     print("smith ", df['smith_misspredicts'].sum())
-
     # Choose the best predictor from each row (will be saved as a string)
     df['best_predictor'] = df[['bimodal_window', 'gshare_window', 'smith_window']].idxmax(axis='columns')
-
+    df.fillna(value = 0, inplace = True)
+    # df['oracle'] = df.apply(lambda row: max(row['bimodal_window'],row['gshare_window'],row['smith_window']), axis = 1)
+    df['oracle'] = df.apply(lambda row: row[row['best_predictor']], axis = 1)
     # Bimodal, Gshare, and Smith accuracies for next S segments, for the window
-    df['bimodal_next_S'] = 1 - (df['bimodal_misspredicts'].shift(-(S+W)).rolling(window = W+S).sum() / W)
-    df['gshare_next_S'] = 1 - (df['gshare_misspredicts'].shift(-(S+W)).rolling(window = W+S).sum() / W)
-    df['smith_next_S'] = 1 - (df['smith_misspredicts'].shift(-(S+W)).rolling(window = W+S).sum() / W)
+    df['bimodal_next_S'] = 1 - (df['bimodal_misspredicts'].shift(-(S)).rolling(window = S).sum() / S)
+    df['gshare_next_S'] = 1 - (df['gshare_misspredicts'].shift(-(S)).rolling(window = S).sum() / S)
+    df['smith_next_S'] = 1 - (df['smith_misspredicts'].shift(-(S)).rolling(window = S).sum() / S)
 
     # Choose the best future predictor from each row (will be saved as a string)
     df['best_predictor_next_S'] = df[['bimodal_next_S', 'gshare_next_S', 'smith_next_S']].idxmax(axis='columns')
@@ -130,22 +135,38 @@ else:
     # Load the dataframe
     df = pd.read_pickle(pickle_data)
 
+print(df)
 # Split the dataframe into training and testing sets
-train, test = train_test_split(df[:data_amount], test_size=0.2)
+train, test = train_test_split(df[:data_amount], test_size=0.2, shuffle = False)
 
 # Choose the features the model will use
 features = ["taken", "not_taken", "volatility", "best_predictor"]
-
+# features = ["taken", "not_taken"]
 # Seperate the inputs and outputs to the training and testing data
 x_train = train[features]
-y_train = train['best_predictor_next_S']
+y_train = train[['best_predictor_next_S']]
+print(train[['best_predictor_next_S']][:50])
 
 x_test = test[features]
-y_test = test['best_predictor_next_S']
+y_test = test[['best_predictor_next_S']]
+print(x_train.describe())
+print(y_train.describe())
 
+print(x_test.describe())
+print(y_test.describe())
+PARAMS = {
+'base_score':0.5,
+'gamma':0.1,
+'learning_rate':0.02,
+'max_depth':7,
+'min_child_weight':1,
+'n_estimators':500,
+'seed':42,
+'objective':'multi:softmax'
+}
 if not exists('trained_model1.model'):
     # Create, fit, and save the model
-    model = xgboost.XGBClassifier()
+    model = xgboost.XGBClassifier(PARAMS)
     model.fit(x_train, y_train)
     model.save_model('trained_model1.model')
 else:
@@ -155,12 +176,13 @@ else:
 
 # Predict which predictor to use!
 predictions = model.predict(x_test)
-
-# print(predictions[:50])
-
+# predictions = test['best_predictor_next_S'].values.tolist()
+print(x_test.__len__())
+print(predictions[:500])
 # Find the model accuracy
 accuracy = accuracy_score(y_test, predictions)
 print("Model accuracy: ", accuracy)
+_ = plot_importance(model, height = 0.9)
 
 # For each row, select chosen predictor and compare with actual
 mispredictions = 0
@@ -168,17 +190,27 @@ using_predictor = 0
 # Using the predictors' prediction data
 column_list = ["bimodal_misspredicts", "gshare_misspredicts", "smith_misspredicts"]
 # Go over the rows in the testing range (every segment)
-for i in range(train.__len__(), train.__len__() + test.__len__()):
+for i in range(train.__len__(), train.__len__() + test.__len__()):  
     # Every segment
+    
+    mispredictions += df.iloc[i][column_list[using_predictor]]
     if (i % S == 0):
         # Choose the predictor for the next S segments
         using_predictor = predictions[i - train.__len__()]
-    # Get the misprediction value from the location (current row, column of current predictor)
-    mispredictions += df.iloc[i, df.columns.get_loc(column_list[using_predictor])]
 
+    #mispredictions += df.iloc[i][column_list[df.iloc[i]['best_predictor']]]
+    # Get the misprediction value from the location (current row, column of current predictor)
+
+#print(df[300:350][['']])
 # Final results
+SmithResult = 1 - df[train.__len__():data_amount]['smith_misspredicts'].sum() / test.__len__()
+BimodalResult = 1 - df[train.__len__():data_amount]['bimodal_misspredicts'].sum() / test.__len__()
+GshareResult = 1 - df[train.__len__():data_amount]['gshare_misspredicts'].sum() / test.__len__()
+OracleResult = df[train.__len__():data_amount]['oracle'].sum() / test.__len__()
+OurResult = 1 - mispredictions / test.__len__()
 print("RESULTS: ")
-print("Smith Predictor %: ", 1 - df[train.__len__():data_amount]['smith_misspredicts'].sum() / test.__len__())
-print("Bimodal Predictor %: ", 1 - df[train.__len__():data_amount]['bimodal_misspredicts'].sum() / test.__len__())
-print("Gshare Predictor %: ", 1 - df[train.__len__():data_amount]['gshare_misspredicts'].sum() / test.__len__())
-print("Our method %: ", 1 - mispredictions / test.__len__())
+print("Smith Predictor %: ", SmithResult)
+print("Bimodal Predictor %: ", BimodalResult)
+print("Gshare Predictor %: ", GshareResult)
+print("Oracle Clairvoyance %: ", OracleResult)
+print("Our method %: ", OurResult)
