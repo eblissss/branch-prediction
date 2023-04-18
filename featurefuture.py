@@ -10,41 +10,31 @@ from os.path import exists
 from xgboost import plot_importance, plot_tree
 
 # CONFIG
-m = 8 # m sets the size of the predictor tables
-n = 3 # n is the bit amounts for the predictors (n <= m)
-W = 50 # length of the features window
-S = 10 # query the model every S segments
-tracefile = "traces/jpeg_trace.txt"
+m = 5 # m sets the size of the predictor tables
+n = 5 # n is the bit amounts for the predictors (n <= m)
+W = 10 # length of the features window
+S = 5 # query the model every S segments
+tracefile = "traces/branches_gzip.txt"
 pickle_data = "./data_pickle.pkl"
-data_amount = 700_000
-
-# UNUSED CODE:
-# class Counter:
-#     def __init__(self, largest_bit):
-#         self.count = largest_bit
-#     def inc(self):
-#         self.count += 1
-#     def dec(self):
-#         self.count -= 1
-
-# # State for predictors
-# smith_counter = Counter(largest_bit = 1 << (n - 1))
-# bimodal_table = [4] * (1 << m)
-# gshare_table = [4] * (1 << m)
-# gshare_bhr = 0
+data_amount = 2_000_000
+use_other_input = True
 
 # Create Pandas Dataframe (if not already created)
 if not exists(pickle_data):
     # Read CSV to Dataframe
-    df = pd.read_csv(tracefile, sep = " ", header = None, names =  ["addresses","outcome"])
-
-    # Transform taken or not taken to binary
-    df['binary'] = df.apply(lambda row: 1 if row['outcome'] == "t" else 0, axis = 1)
+    if not use_other_input:
+        df = pd.read_csv(tracefile, sep = " ", header = None, names =  ["addresses","outcome"])
+        # Transform taken or not taken to binary
+        df['binary'] = df.apply(lambda row: 1 if row['outcome'] == "t" else 0, axis = 1)
+    else:
+        df = pd.read_csv(tracefile, sep = "\t", header = None, names = ["target", "outcome", "conditional", "call", "ret", "direct", "garbage", "addresses"])
+        df['binary'] = df['outcome']
+        print(df.head())
 
     # Take the rolling sum for the past W rows (for each row)
     df['taken'] = df['binary'].rolling(window = W).sum()
     df.fillna(0)
-
+ 
     # Reverse taken and place in not_taken
     df['not_taken'] = W - df['taken']
 
@@ -99,25 +89,25 @@ if not exists(pickle_data):
 
     # Convert the string to a number
     def best_predictor_index(row):
-        if row['best_predictor'] == 0: return 0
+        if row['best_predictor'] == 0: return 2
         if row['best_predictor'][0] == "b": # bimodal
             return 0
         if row['best_predictor'][0] == "g": # gshare
             return 1
         if row['best_predictor'][0] == "s": #smith
             return 2
-        return 0
+        return 2
 
     # Convert the string to a number (again)
     def best_predictor_index_2(row):
-        if row['best_predictor_next_S'] == 0: return 0
+        if row['best_predictor_next_S'] == 0: return 2
         if row['best_predictor_next_S'][0] == "b": # bimodal
             return 0
         if row['best_predictor_next_S'][0] == "g": # gshare
             return 1
         if row['best_predictor_next_S'][0] == "s": #smith
             return 2
-        return 0
+        return 2
 
     # Use the above functions to convert the strings in the two columns to numbers (one hot encoding basically)
     df['best_predictor'] = df.apply(best_predictor_index,axis = 1) 
@@ -135,38 +125,45 @@ else:
     # Load the dataframe
     df = pd.read_pickle(pickle_data)
 
-print(df)
+# print(df)
 # Split the dataframe into training and testing sets
 train, test = train_test_split(df[:data_amount], test_size=0.2, shuffle = False)
-
+train = train.sample(frac = 1).reset_index(drop=True)
 # Choose the features the model will use
-features = ["taken", "not_taken", "volatility", "best_predictor"]
+if not use_other_input:
+    features = ["taken", "not_taken", "volatility", "best_predictor"]
+else:
+    features = ["taken", "not_taken", "volatility", "best_predictor", "conditional", "call", "ret", "direct"]
 # features = ["taken", "not_taken"]
 # Seperate the inputs and outputs to the training and testing data
 x_train = train[features]
 y_train = train[['best_predictor_next_S']]
 print(train[['best_predictor_next_S']][:50])
+print(train.head().to_string())
 
 x_test = test[features]
 y_test = test[['best_predictor_next_S']]
-print(x_train.describe())
-print(y_train.describe())
+# print(x_train.describe())
+# print(y_train.describe())
 
-print(x_test.describe())
-print(y_test.describe())
+# print(x_test.describe())
+# print(y_test.describe())
+
 PARAMS = {
-'base_score':0.5,
-'gamma':0.1,
+'base_score':1,
+'gamma':0.01,
 'learning_rate':0.02,
-'max_depth':7,
+'max_depth':1,
 'min_child_weight':1,
-'n_estimators':500,
-'seed':42,
-'objective':'multi:softmax'
+'n_estimators':200000,
+'seed':420,
+'objective':'multi:softmax',
+'lambda': 0.01,
+'alpha': 0,
 }
 if not exists('trained_model1.model'):
     # Create, fit, and save the model
-    model = xgboost.XGBClassifier(PARAMS)
+    model = xgboost.XGBClassifier(booster="dart", reg_alpha=0, reg_lambda=0)
     model.fit(x_train, y_train)
     model.save_model('trained_model1.model')
 else:
@@ -177,12 +174,13 @@ else:
 # Predict which predictor to use!
 predictions = model.predict(x_test)
 # predictions = test['best_predictor_next_S'].values.tolist()
-print(x_test.__len__())
+# print(x_test.__len__())
 print(predictions[:500])
+print(sum(predictions))
 # Find the model accuracy
 accuracy = accuracy_score(y_test, predictions)
 print("Model accuracy: ", accuracy)
-_ = plot_importance(model, height = 0.9)
+# _ = plot_importance(model, height = 0.9)
 
 # For each row, select chosen predictor and compare with actual
 mispredictions = 0
