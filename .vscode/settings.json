@@ -1,6 +1,7 @@
 {
   "files.associations": {
-    "xstring": "cpp"
+    "xstring": "cpp",
+    "iostream": "cpp"
   },
   "python.analysis.typeCheckingMode": "basic",
   "terminal.integrated.env.windows": { "PYTHONPATH": "xxx/site-packages" }

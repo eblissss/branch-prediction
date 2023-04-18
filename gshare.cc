@@ -3,11 +3,9 @@
 
 using namespace std;
 
-int* gshare(int m, int n, char *tracefile) {
+int* gshare(int m, int n, char *tracefile, vector<int> table) {
     
     int bhr_largest_bit = 1 << (n - 1);
-
-    vector<int> table(1 << m, 4);
 
     bool actual_taken;
     bool pred_taken;
