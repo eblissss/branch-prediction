@@ -4,9 +4,24 @@
 #include <string>
 #include <cstring>
 #include <bits/stdc++.h>
+#include <vector>
 #include "sim.hh"
 
 using namespace std;
+
+void print_output(int *results)
+{
+    // Stats
+    int predictions = results[0];
+    int mispredictions = results[1];
+    double mis_rate = (100.0 * mispredictions) / predictions;
+
+    // Output formatted
+    cout.precision(4);
+    cout << setw(30) << left << "number of predictions: " << setw(8) << predictions << endl;
+    cout << setw(30) << "number of mispredictions: " << setw(8) << mispredictions << endl;
+    cout << setw(30) << "misprediction rate:" << setw(4) << fixed << setprecision(2) << mis_rate << "%" << endl;
+}
 
 int main(int argc, char* argv[]) {
 
@@ -29,6 +44,9 @@ int main(int argc, char* argv[]) {
             return 0;
         }
         results = smith(stoi(argv[2]), argv[3]);
+        // print results
+        print_output(results);
+        cout << setw(30) << "FINAL COUNTER CONTENT:" << setw(4) << results[2] << endl;
     }
     else if (strcmp(argv[1], "bimodal") == 0) {
         if (argc < 4) {
@@ -37,6 +55,12 @@ int main(int argc, char* argv[]) {
         }
         table.assign (1 << stoi(argv[2]), 4);
         results = bimodal(stoi(argv[2]), argv[3], table);
+        // print results
+        print_output(results);
+        cout << setw(30) << "FINAL BIMODAL CONTENTS"<< endl;
+        //print_table(table);
+        for (int i = 0; i < table.size(); i++)
+            cout << i << "\t" << results[i+2] << endl;
     }
     else if (strcmp(argv[1], "gshare") == 0) {
         if (argc < 5) {
@@ -45,6 +69,11 @@ int main(int argc, char* argv[]) {
         }
         table.assign (1 << stoi(argv[2]), 4);
         results = gshare(stoi(argv[2]), stoi(argv[3]), argv[4], table);
+        // print results
+        print_output(results);
+        cout << setw(30) << "FINAL GSHARE CONTENTS"<< endl;
+        for (int i = 0; i < table.size(); i++)
+            cout << i << "\t" << results[i+2] << endl;
     }
     else if (strcmp(argv[1], "hybrid") == 0) {
         if (argc < 7) {
@@ -56,23 +85,36 @@ int main(int argc, char* argv[]) {
         hybrid_chooser_table.assign (1 << stoi(argv[2]), 1);
         results = hybrid(stoi(argv[2]), stoi(argv[3]), stoi(argv[4]), stoi(argv[5]), argv[6],
                          hybrid_table_g, hybrid_table_b, hybrid_chooser_table);
+        // print results
+        print_output(results);
+        // print tables
+        int b = 0, g = 0;
+        cout << setw(30) << "FINAL CHOOSER CONTENTS"<< endl;
+        for (int i = 0; i < hybrid_chooser_table.size(); i++)
+        {
+            cout << i << "\t" << results[i+2] << endl;
+            g = i;
+        }
+        cout << setw(30) << "FINAL GSHARE CONTENTS"<< endl;
+        for (int i = 0; i < hybrid_table_g.size(); i++)
+        {
+            cout << i << "\t" << results[g] << endl;
+            g++;
+            b = g;
+        }
+        cout << setw(30) << "FINAL BIMODAL CONTENTS"<< endl;
+        for (int i = 0; i < hybrid_table_b.size(); i++)
+        {
+            cout << i << "\t" << results[b] << endl;
+            b++;
+        }
+
     } else {
         cout << "Not a valid sim type! Choose from smith, bimodal, gshare, or hybrid" << endl;
         return 0;
     }
     
-
-    // Stats
-    int predictions = results[0];
-    int mispredictions = results[1];
-    double mis_rate = (100.0 * mispredictions) / predictions;
-
-    // Output formatted
-    cout.precision(4);
-    cout << setw(30) << left << "number of predictions: " << setw(8) << predictions << endl;
-    cout << setw(30) << "number of mispredictions: " << setw(8) << mispredictions << endl;
-    cout << setw(30) << "misprediction rate:" << setw(4) << fixed << setprecision(2) << mis_rate << "%" << endl;
-
+ /* 
     // Print tables
     if (strcmp(argv[1], "smith") == 0) {
         return 0;
@@ -98,4 +140,6 @@ int main(int argc, char* argv[]) {
     } else {
         return 0;
     }
+*/
+    return 0;
 }

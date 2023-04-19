@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
 #include <fstream>
+#include <vector>
 
 using namespace std;
 
@@ -72,8 +73,10 @@ int* gshare(int m, int n, char *tracefile, vector<int> table) {
     }
     InFile.close();
 
-    int *ret = (int *)malloc(sizeof(int) * 2);
+    int *ret = (int *)malloc(sizeof(int) * (table.size() + 2));
     ret[0] = predictions;
     ret[1] = mispredictions;
+    for (int i = 0; i < table.size(); i++)
+        ret[i+2] = table.at(i);
     return ret;
 }

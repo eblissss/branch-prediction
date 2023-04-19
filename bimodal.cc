@@ -1,5 +1,8 @@
 #include <bits/stdc++.h>
 #include <fstream>
+#include <vector>
+
+#include <iostream>
 
 using namespace std;
 
@@ -42,8 +45,14 @@ int* bimodal(int m, char *tracefile, vector<int> table) {
     }
     InFile.close();
 
-    int *ret = (int *)malloc(sizeof(int) * 2);
+//print_table(table);
+ //       for (int i = 0; i < table.size(); i++)
+  //          cout << i << "\t" << table.at(i) << endl;
+
+    int *ret = (int *)malloc(sizeof(int) * (table.size() + 2));
     ret[0] = predictions;
     ret[1] = mispredictions;
+    for (int i = 0; i < table.size(); i++)
+        ret[i+2] = table.at(i);
     return ret;
 }

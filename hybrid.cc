@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
 #include <fstream>
+#include <vector>
 
 using namespace std;
 
@@ -90,8 +91,28 @@ int* hybrid(int k, int m_1, int n, int m_2, char *tracefile,
     }
     InFile.close();
 
-    int *ret = (int *)malloc(sizeof(int) * 2);
+    int size = chooser_table.size() + table_b.size() + table_g.size();
+    int b = 0, g = 0;
+
+    int *ret = (int *)malloc(sizeof(int) * (size + 2));
     ret[0] = predictions;
     ret[1] = mispredictions;
+    for (int i = 0; i < chooser_table.size(); i++)
+    {
+        ret[i+2] = chooser_table.at(i);
+        g = i;
+    }
+    for (int i = 0; i < table_g.size(); i++)
+    {
+        ret[g] = table_g.at(i);
+        g++;
+        b = g;
+    }
+    for (int i = 0; i < table_b.size(); i++)
+    {
+        ret[b] = table_b.at(i);
+        b++;
+    }
+         
     return ret;
 }
