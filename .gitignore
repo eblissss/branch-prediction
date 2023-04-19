@@ -36,7 +36,8 @@ gcc_trace.txt
 jpeg_trace.txt
 perl_trace.txt
 gzip_big.txt
-branches_gzip.txt
+gcc_big.txt
+jpegoptim_branches.txt
 *.pkl
 *.model
 *.pyc
