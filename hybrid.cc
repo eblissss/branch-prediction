@@ -100,19 +100,19 @@ int* hybrid(int k, int m_1, int n, int m_2, char *tracefile,
     for (int i = 0; i < chooser_table.size(); i++)
     {
         ret[i+2] = chooser_table.at(i);
-        g = i;
+        g = i+1;
     }
     for (int i = 0; i < table_g.size(); i++)
     {
-        ret[g] = table_g.at(i);
+        ret[g+2] = table_g.at(i);
         g++;
         b = g;
     }
     for (int i = 0; i < table_b.size(); i++)
     {
-        ret[b] = table_b.at(i);
+        ret[b+2] = table_b.at(i);
         b++;
     }
-         
+
     return ret;
 }
