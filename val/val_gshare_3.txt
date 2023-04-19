@@ -1,6 +1,3 @@
-COMMAND
-./sim gshare 11 5 jpeg_trace.txt
-OUTPUT
 number of predictions:		2000000
 number of mispredictions:	187068
 misprediction rate:		9.35%

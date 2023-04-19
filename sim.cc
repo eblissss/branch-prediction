@@ -18,9 +18,9 @@ void print_output(int *results)
 
     // Output formatted
     cout.precision(4);
-    cout << setw(30) << left << "number of predictions: " << setw(8) << predictions << endl;
-    cout << setw(30) << "number of mispredictions: " << setw(8) << mispredictions << endl;
-    cout << setw(30) << "misprediction rate:" << setw(4) << fixed << setprecision(2) << mis_rate << "%" << endl;
+    cout << "number of predictions:" << "\t\t" << predictions << endl;
+    cout << "number of mispredictions:" << "\t" << mispredictions << endl;
+    cout << "misprediction rate:" << fixed << setprecision(2)  << "\t\t"<< mis_rate << "%" << endl;
 }
 
 int main(int argc, char* argv[]) {
@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
         results = smith(stoi(argv[2]), argv[3]);
         // print results
         print_output(results);
-        cout << setw(30) << "FINAL COUNTER CONTENT:" << setw(4) << results[2] << endl;
+        cout << "FINAL COUNTER CONTENT: " << "\t\t" << results[2] << endl;
     }
     else if (strcmp(argv[1], "bimodal") == 0) {
         if (argc < 4) {
@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
         results = bimodal(stoi(argv[2]), argv[3], table);
         // print results
         print_output(results);
-        cout << setw(30) << "FINAL BIMODAL CONTENTS"<< endl;
+        cout << "FINAL BIMODAL CONTENTS"<< endl;
         //print_table(table);
         for (int i = 0; i < table.size(); i++)
             cout << i << "\t" << results[i+2] << endl;
@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
         results = gshare(stoi(argv[2]), stoi(argv[3]), argv[4], table);
         // print results
         print_output(results);
-        cout << setw(30) << "FINAL GSHARE CONTENTS"<< endl;
+        cout << "FINAL GSHARE CONTENTS"<< endl;
         for (int i = 0; i < table.size(); i++)
             cout << i << "\t" << results[i+2] << endl;
     }
@@ -89,23 +89,23 @@ int main(int argc, char* argv[]) {
         print_output(results);
         // print tables
         int b = 0, g = 0;
-        cout << setw(30) << "FINAL CHOOSER CONTENTS"<< endl;
+        cout << "FINAL CHOOSER CONTENTS"<< endl;
         for (int i = 0; i < hybrid_chooser_table.size(); i++)
         {
             cout << i << "\t" << results[i+2] << endl;
-            g = i;
+            g = i+1;
         }
-        cout << setw(30) << "FINAL GSHARE CONTENTS"<< endl;
+        cout << "FINAL GSHARE CONTENTS"<< endl;
         for (int i = 0; i < hybrid_table_g.size(); i++)
         {
-            cout << i << "\t" << results[g] << endl;
+            cout << i << "\t" << results[g + 2] << endl;
             g++;
             b = g;
         }
-        cout << setw(30) << "FINAL BIMODAL CONTENTS"<< endl;
+        cout << "FINAL BIMODAL CONTENTS"<< endl;
         for (int i = 0; i < hybrid_table_b.size(); i++)
         {
-            cout << i << "\t" << results[b] << endl;
+            cout << i << "\t" << results[b+2] << endl;
             b++;
         }
 
