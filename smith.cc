@@ -9,7 +9,6 @@ int* smith(int num_bits, char *tracefile) {
     int counter = largest_bit;
     int max_count = pow(2, num_bits) - 1;
 
-
     bool actual_taken;
     bool pred_taken;
 
@@ -35,6 +34,7 @@ int* smith(int num_bits, char *tracefile) {
         if (actual_taken != pred_taken) mispredictions++;
     }
 
+    // Return results
     int *ret = (int *)malloc(sizeof(int) * 3);
     ret[0] = predictions;
     ret[1] = mispredictions;

@@ -38,6 +38,8 @@ perl_trace.txt
 gzip_big.txt
 gcc_big.txt
 jpegoptim_branches.txt
+out_file.txt
 *.pkl
 *.model
 *.pyc
+/validation_runs

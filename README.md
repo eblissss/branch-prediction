@@ -24,7 +24,7 @@ Data collected with Intel Pin Tool
 
 ### How to use
 
-- Install required libraries
+- Install required libraries (`pip install -r requirements.txt`)
 - Configure and run featurefuture.py
 
 ### C++ Files

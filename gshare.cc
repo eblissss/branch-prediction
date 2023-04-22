@@ -73,10 +73,11 @@ int* gshare(int m, int n, char *tracefile, vector<int> table) {
     }
     InFile.close();
 
+    // Return results
     int *ret = (int *)malloc(sizeof(int) * (table.size() + 2));
     ret[0] = predictions;
     ret[1] = mispredictions;
-    for (int i = 0; i < table.size(); i++)
+    for (long unsigned int i = 0; i < table.size(); i++)
         ret[i+2] = table.at(i);
     return ret;
 }

@@ -91,24 +91,26 @@ int* hybrid(int k, int m_1, int n, int m_2, char *tracefile,
     }
     InFile.close();
 
+    
     int size = chooser_table.size() + table_b.size() + table_g.size();
     int b = 0, g = 0;
-
+    
+    // Return results
     int *ret = (int *)malloc(sizeof(int) * (size + 2));
     ret[0] = predictions;
     ret[1] = mispredictions;
-    for (int i = 0; i < chooser_table.size(); i++)
+    for (long unsigned int i = 0; i < chooser_table.size(); i++)
     {
         ret[i+2] = chooser_table.at(i);
         g = i+1;
     }
-    for (int i = 0; i < table_g.size(); i++)
+    for (long unsigned int i = 0; i < table_g.size(); i++)
     {
         ret[g+2] = table_g.at(i);
         g++;
         b = g;
     }
-    for (int i = 0; i < table_b.size(); i++)
+    for (long unsigned int i = 0; i < table_b.size(); i++)
     {
         ret[b+2] = table_b.at(i);
         b++;
