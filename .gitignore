@@ -43,3 +43,5 @@ out_file.txt
 *.model
 *.pyc
 /validation_runs
+*.zip
+*.Identifier
